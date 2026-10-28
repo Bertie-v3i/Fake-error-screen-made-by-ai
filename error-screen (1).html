@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>System Error</title>
+  <style>
+    /* Full-screen layout */
+    :root{
+      --bg:#04132a;
+      --panel:#0b324d;
+      --accent:#00d1ff;
+      --muted:#9fc9db;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    body{
+      background:
+        radial-gradient(ellipse at center, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.00) 40%),
+        linear-gradient(180deg,#021827 0%, var(--bg) 100%);
+      color:#e6f7ff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow:hidden;
+    }
+
+    /* Card / panel */
+    .screen{
+      width:92%;
+      max-width:1100px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:10px;
+      box-shadow: 0 18px 60px rgba(2,10,20,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
+      padding:34px;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    h1{
+      margin:0 0 10px 0;
+      font-size:36px;
+      letter-spacing:-0.6px;
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+    .dot{
+      width:56px;height:56px;border-radius:8px;
+      background:linear-gradient(180deg,var(--panel), #063451);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;
+      font-family:var(--mono);
+      color:var(--accent);
+      font-size:18px;
+      box-shadow: inset 0 -6px 14px rgba(0,0,0,0.45);
+    }
+
+    p.lead{
+      margin:0 0 20px 0;
+      color:var(--muted);
+      font-size:16px;
+    }
+
+    .content{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+    .left{flex:1 1 420px;min-width:320px;}
+    .right{width:360px;min-width:280px;}
+
+    /* Terminal details */
+    .terminal{
+      background:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.25));
+      border-radius:8px;
+      padding:18px;
+      font-family:var(--mono);
+      font-size:13px;
+      line-height:1.5;
+      color:#cfeffb;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      border:1px solid rgba(255,255,255,0.02);
+      max-height:380px;
+      overflow:auto;
+    }
+
+    .line{opacity:0;transform:translateY(6px);animation:pop 800ms forwards;}
+    @keyframes pop{
+      to{opacity:1;transform:none;}
+    }
+
+    .progress{
+      height:14px;
+      background:rgba(255,255,255,0.04);
+      border-radius:8px;
+      overflow:hidden;
+      margin-top:14px;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .progress > i{
+      display:block;height:100%;background:linear-gradient(90deg,var(--accent),#7ef0ff);
+      width:0%;
+      box-shadow:0 0 20px rgba(0,209,255,0.18), inset 0 -6px 18px rgba(0,0,0,0.3);
+      transition:width 600ms linear;
+    }
+
+    .hint{
+      margin-top:10px;color:var(--muted);font-size:13px;
+    }
+
+    .actions{
+      margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;
+    }
+    .btn{
+      background:transparent;border:1px solid rgba(255,255,255,0.06);
+      color:var(--muted);padding:10px 14px;border-radius:8px;font-size:13px;cursor:pointer;
+    }
+    .btn.primary{border-color:rgba(0,209,255,0.18);color:var(--accent);background:linear-gradient(90deg, rgba(0,209,255,0.03), rgba(0,209,255,0.01));}
+
+    /* subtle scanline and noise */
+    .screen::before{
+      content:"";
+      position:absolute;pointer-events:none;
+      inset:0;background-image:linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px);
+      background-size:100% 4px;mix-blend-mode:overlay;opacity:0.6;border-radius:10px;
+    }
+
+    /* small footer */
+    .meta{margin-top:16px;color:rgba(255,255,255,0.06);font-size:12px}
+
+    /* responsive */
+    @media (max-width:720px){
+      h1{font-size:20px}
+      .dot{width:44px;height:44px;font-size:14px}
+      .right{width:100%}
+      .left{min-width:auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="screen" role="dialog" aria-labelledby="title" aria-modal="true">
+    <h1 id="title">
+      <span class="dot">ERR</span>
+      Critical system failure — unrecoverable kernel exception
+    </h1>
+    <p class="lead">The system encountered an unexpected error and must halt to prevent data corruption. Diagnostic information is being collected.</p>
+
+    <div class="content">
+      <div class="left">
+        <div class="terminal" id="terminal" aria-live="polite" tabindex="0">
+          <!-- lines appended by JS -->
+        </div>
+
+        <div class="progress" title="Collecting data">
+          <i id="bar"></i>
+        </div>
+        <div class="hint" id="hint">Collecting memory dump &middot; Please do not power off this machine.</div>
+
+        <div class="actions">
+          <button class="btn primary" id="restart">Restart (simulated)</button>
+          <button class="btn" id="details">View raw details</button>
+        </div>
+      </div>
+
+      <aside class="right">
+        <div style="background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:12px;border-radius:8px;">
+          <div style="font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:10px;">SYSTEM INFO</div>
+          <div style="font-family:var(--mono);background:transparent;padding:8px;border-radius:6px;color:#dff8ff;font-size:13px;">
+            OS: FauxOS 11.3.7 (kernel 5.18.0-fake)<br/>
+            Host: VM-guest-42<br/>
+            Uptime: 3d 6h 12m<br/>
+            Error code: 0xDEADBEEF<br/>
+            Faulting module: kernel-core (0x7f4a2)
+          </div>
+
+          <div style="margin-top:12px;font-family:var(--mono);color:var(--muted);font-size:13px;">
+            Suggested actions:
+            <ul style="margin:8px 0 0 18px;color:#cfeffb">
+              <li>Wait until diagnostics finish</li>
+              <li>Note error code and contact support</li>
+              <li>Restart machine if prompted</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="meta">Error timestamp: <span id="ts"></span> · Session ID: <span id="sid"></span></div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // Small script to simulate terminal/log output and progress.
+    (function(){
+      const terminal = document.getElementById('terminal');
+      const bar = document.getElementById('bar');
+      const ts = document.getElementById('ts');
+      const sid = document.getElementById('sid');
+      const restartBtn = document.getElementById('restart');
+      const detailsBtn = document.getElementById('details');
+
+      // Fill meta
+      const now = new Date();
+      ts.textContent = now.toLocaleString();
+      sid.textContent = Math.random().toString(36).slice(2,10).toUpperCase();
+
+      // Sample log lines to print
+      const lines = [
+        "INIT: kernel_panic_handler started",
+        "TRACE: cpu0: fault at 0x7ffef2a1c34 (rip 0x7f4a2b)",
+        "MEM: validating page tables",
+        "MEM: locked pages: 0x0000A3B2",
+        "DRIVER: nvme0: error status 0x14",
+        "FS: journal replay suspended",
+        "NETWORK: eth0: link down",
+        "KERNEL: thread 'watchdog' triggered stack overflow check",
+        "DUMP: preparing partial memory snapshot",
+        "DUMP: writing snapshot block 0x0001 -> /var/crash/partial.dmp",
+        "DIAG: collecting process list",
+        "DIAG: collecting open file descriptors",
+        "DIAG: collecting CPU registers",
+        "SEC: verifying kernel signature",
+        "COMPLETE: partial snapshot written (approx 92MB)"
+      ];
+
+      // Helper to append a line with slight delay and animation
+      function appendLine(text, delayIndex){
+        const el = document.createElement('div');
+        el.className = 'line';
+        el.style.animationDelay = (delayIndex * 220) + 'ms';
+        el.textContent = text;
+        terminal.appendChild(el);
+        terminal.scrollTop = terminal.scrollHeight;
+      }
+
+      // Animate progress from 0 to 100% with slight jitter
+      let pct = 0;
+      let idx = 0;
+      function step(){
+        if(idx < lines.length){
+          appendLine(lines[idx], idx);
+          idx++;
+        }
+        pct += Math.floor(4 + Math.random()*8); // 4-11%
+        if(pct > 100) pct = 100;
+        bar.style.width = pct + '%';
+        if(pct < 100){
+          setTimeout(step, 700 + Math.random()*500);
+        } else {
+          // Final lines
+          setTimeout(()=>{
+            appendLine("DIAG: collection complete", idx++);
+            appendLine("SYSTEM: halt - awaiting user action", idx++);
+            document.getElementById('hint').textContent = "Diagnostics complete · You may restart the machine.";
+          }, 600);
+        }
+        terminal.scrollTop = terminal.scrollHeight;
+      }
+
+      // Kick off with a few initial quick lines
+      appendLine(">>> Critical fault detected", 0);
+      appendLine(">>> Switching to emergency diagnostics mode", 1);
+      setTimeout(step, 800);
+
+      // Buttons
+      restartBtn.addEventListener('click', ()=>{
+        // Fake restart animation: overlay quick flash then reload page
+        document.body.style.transition = 'filter 350ms ease';
+        document.body.style.filter = 'brightness(0.2) saturate(0.4)';
+        setTimeout(()=>location.reload(), 600);
+      });
+
+      detailsBtn.addEventListener('click', ()=>{
+        alert("Raw dump path: /var/crash/partial.dmp\nError code: 0xDEADBEEF\nContact: support@example.com");
+      });
+
+      // Optional convenience: pressing any key triggers restart (simulated)
+      window.addEventListener('keydown', (e)=>{
+        if(e.key === 'r' || e.key === 'R' || e.key === 'Enter' || e.key === ' '){
+          restartBtn.click();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
